@@ -1,10 +1,40 @@
-# modules/osm_tags.py
-
 OSM_TAGS = {
+    "natural": [
+        "water",         # plan d'eau
+        "waterfall",     # cascade
+        "peak",          # sommet
+        "cave_entrance", # entrée de grotte
+        "spring",        # source
+        "cliff",         # falaise
+        "wood",          # bois, forêt
+        "grassland",     # prairie
+        "beach",         # plage
+    ],
+    "tourism": [
+        "viewpoint",     # point de vue
+        "attraction",    # attraction touristique
+        "museum",
+        "gallery",
+        "theme_park",
+        "zoo",
+        "aquarium",
+        "information",
+        "camp_site",
+        "picnic_site",
+        "hotel",
+    ],
+    "leisure": [
+        "park",
+        "garden",
+        "nature_reserve",
+        "playground",
+        "sports_centre",
+        "swimming_pool",
+    ],
     "shop": [
         "bakery",
-        "clothes",
         "supermarket",
+        "clothes",
         "beauty",
         "mall",
         "books",
@@ -15,21 +45,21 @@ OSM_TAGS = {
     ],
     "amenity": [
         "pharmacy",
+        "restaurant",
+        "cafe",
+        "bank",
         "hospital",
         "school",
-        "restaurant",
-        "bank",
-        "bar",
-        "cafe",
         "library",
-        "parking",
         "post_office",
+        "police",
     ],
     "man_made": [
         "tower",
         "bridge",
         "lighthouse",
         "water_tower",
-        "works",
-    ],
+        "survey_point",
+        "flagpole",
+    ]
 }

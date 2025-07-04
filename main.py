@@ -127,7 +127,7 @@ def run_overpass_search():
 
     keys = list(OSM_TAGS.keys())
     key = input_with_help_loop(
-        "Tag principal OSM. Tapez 'help' pour la liste, 'skip' pour ignorer : ",
+        "Tag principal OSM. Tapez 'help'",
         options=keys,
         allow_skip=False  # ici on veut un tag obligatoire
     )
