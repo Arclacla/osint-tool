@@ -1,8 +1,12 @@
 from modules.dns_lookup import dns_lookup
 from modules.whois_lookup import whois_lookup
 from modules.hunter_lookup import hunter_lookup
-from modules.duckduckgo_dork import duckduckgo_search
+from modules.duckduckgo_dork import duckduckgo_search, build_dork
 
+
+def ask_list(prompt):
+    val = input(prompt).strip()
+    return val.split(",") if val else []
 
 def print_section(title, content):
     print(f"\n=== {title} ===")
@@ -27,14 +31,22 @@ if __name__ == "__main__":
     hunter_results = hunter_lookup(domain)
     print_section("Emails trouvés via Hunter.io", hunter_results)
 
-    print("\n=== Résultats DuckDuckGo Dork ===")
-    dork = input("🔍 Tape un dork DuckDuckGo à tester : ").strip()
-    if dork:
-        ddg_results = duckduckgo_search(dork)
-        if isinstance(ddg_results, dict) and "error" in ddg_results:
-            print(f"Erreur DuckDuckGo : {ddg_results['error']}")
-        elif len(ddg_results) == 0:
-            print("Aucun résultat trouvé.")
-        else:
-            for url in ddg_results:
-                print(f"- {url}")
+    print("\n=== Recherche DuckDuckGo Dork interactive ===")
+    domains = ask_list("Domaines (ex: github.com,gitlab.com) ou Enter pour skip : ")
+    filetypes = ask_list("Types de fichiers (ex: pdf,docx) ou Enter pour skip : ")
+    keywords = ask_list("Mots clés (ex: password,login) ou Enter pour skip : ")
+
+    dorks = build_dork(domains=domains, filetypes=filetypes, keywords=keywords)
+    if not dorks:
+        print("Aucun dork généré.")
+    else:
+        for dork in dorks:
+            print(f"\n🔎 Dork : {dork}")
+            results = duckduckgo_search(dork)
+            if not results:
+                print("Aucun résultat ou erreur.")
+            elif isinstance(results, dict) and "error" in results:
+                print(f"Erreur : {results['error']}")
+            else:
+                for url in results:
+                    print(f"- {url}")
