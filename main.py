@@ -1,4 +1,5 @@
 from modules.dns_lookup import dns_lookup
+from modules.whois_lookup import whois_lookup
 
 def print_section(title, content):
     print(f"\n=== {title} ===")
@@ -13,5 +14,9 @@ def print_section(title, content):
 
 if __name__ == "__main__":
     domain = input("🔍 Entrez un nom de domaine : ").strip()
+
     dns_results = dns_lookup(domain)
     print_section("Résolution DNS", dns_results)
+
+    whois_results = whois_lookup(domain)
+    print_section("WHOIS", whois_results)
