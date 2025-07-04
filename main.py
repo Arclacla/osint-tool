@@ -1,5 +1,6 @@
 from modules.dns_lookup import dns_lookup
 from modules.whois_lookup import whois_lookup
+from modules.hunter_lookup import hunter_lookup
 
 def print_section(title, content):
     print(f"\n=== {title} ===")
@@ -20,3 +21,6 @@ if __name__ == "__main__":
 
     whois_results = whois_lookup(domain)
     print_section("WHOIS", whois_results)
+
+    hunter_results = hunter_lookup(domain)
+    print_section("Emails trouvés via Hunter.io", hunter_results)
