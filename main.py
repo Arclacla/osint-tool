@@ -7,6 +7,7 @@ from modules.exporter import export_results
 from modules.overpass_lookup import build_overpass_query, query_overpass, parse_overpass_results
 from modules.geocode import geocode_address, build_bbox_from_point
 from modules.map_visualization import create_map
+from modules.osm_tags import OSM_TAGS
 
 
 
@@ -18,9 +19,13 @@ def main_menu():
     print("0. Quitter")
     return input("Sélectionnez une option : ").strip()
 
+
+
 def ask_list(prompt):
     val = input(prompt).strip()
     return val.split(",") if val else []
+
+
 
 def prompt_export(data, label="résultat"):
     print(f"\nSouhaitez-vous exporter les {label} ?")
@@ -32,6 +37,8 @@ def prompt_export(data, label="résultat"):
         export_results(data, format="json")
     elif choice == "2":
         export_results(data, format="md")
+
+
 
 def run_domain_search():
     domain = input("🔍 Entrez un nom de domaine : ").strip()
@@ -49,6 +56,8 @@ def run_domain_search():
     print(result["hunter"])
 
     prompt_export(result, label="résultats domaine")
+
+
 
 def run_dork_search():
     domains = ask_list("Domaines (ex: github.com,gitlab.com) : ")
@@ -70,12 +79,73 @@ def run_dork_search():
 
     prompt_export(all_results, label="résultats dorks")
 
+
+
+def input_with_help_loop(prompt: str, options: list = None, allow_skip=True) -> str | None:
+    """
+    Invite l'utilisateur à saisir une valeur.
+    Si 'help' est tapé, affiche la liste des options (une fois),
+    Puis redemande.
+    Si allow_skip est True, l'utilisateur peut taper 'skip' pour passer (retourne None).
+    Reboucle tant que la saisie n'est pas dans options (si options données).
+    """
+    shown_help = False
+    while True:
+        val = input(prompt).strip()
+        val_lower = val.lower()
+
+        if val_lower == "help":
+            if options:
+                print("\nListe des options possibles :")
+                for opt in options:
+                    print(f"- {opt}")
+                print()
+                shown_help = True
+            else:
+                print("Aucune option disponible à afficher.")
+        elif allow_skip and val_lower == "skip":
+            return None
+        else:
+            # Si on a une liste d'options, vérifie que val est dedans
+            if options:
+                # Autorise saisie non sensible à la casse
+                options_lower = [o.lower() for o in options]
+                if val_lower in options_lower:
+                    # Retourne la forme originale (sensible à casse)
+                    idx = options_lower.index(val_lower)
+                    return options[idx]
+                else:
+                    print(f"\n⚠️ '{val}' n'est pas dans la liste des options valides. Tape 'help' pour afficher la liste, ou 'skip' pour ignorer.")
+            else:
+                # Pas de liste d'options, retourne direct
+                return val
+
+
+
 def run_overpass_search():
     print("\n=== Recherche Overpass Turbo ===")
-    key = input("Tag principal OSM (ex: shop, amenity, man_made...) : ").strip()
-    value = input("Valeur de ce tag (ex: bakery, pharmacy...) : ").strip()
-    name = input("Nom recherché (Enter pour ignorer) : ").strip() or None
 
+    keys = list(OSM_TAGS.keys())
+    key = input_with_help_loop(
+        "Tag principal OSM. Tapez 'help' pour la liste, 'skip' pour ignorer : ",
+        options=keys,
+        allow_skip=False  # ici on veut un tag obligatoire
+    )
+    if not key:
+        print("Tag principal obligatoire, arrêt.")
+        return
+
+    values = OSM_TAGS.get(key, [])
+    if values:
+        value = input_with_help_loop(
+            f"Valeur pour '{key}'. Tapez 'help' pour la liste, 'skip' pour ignorer : ",
+            options=values,
+            allow_skip=True
+        )
+    else:
+        value = input(f"Entrez une valeur pour '{key}' : ").strip()
+
+    name = input("Nom recherché (Enter pour ignorer) : ").strip() or None
     print("\nMode de zone géographique :")
     print("1. Zone prédéfinie (Toulouse, Marseille, etc.)")
     print("2. Autour d’une adresse (via géocodage)")
@@ -123,6 +193,7 @@ def run_overpass_search():
         print("❌ Choix invalide.")
         return
 
+    # Construction et exécution requête
     query = build_overpass_query(
         key=key,
         value=value,
@@ -147,6 +218,7 @@ def run_overpass_search():
             print(f"- {r['name']} ({r['lat']}, {r['lon']}) | Tags: {r['tags']}")
 
     prompt_export(results, label="résultats Overpass")
+
     create_map_choice = input("Voulez-vous générer une carte interactive des résultats ? (o/N) : ").strip().lower()
     if create_map_choice == "o":
         create_map(results)

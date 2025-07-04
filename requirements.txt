@@ -3,3 +3,7 @@ dnspython
 python-whois
 python-dotenv
 tabulate
+beautifulsoup4
+folium
+geopy
+
