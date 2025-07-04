@@ -5,6 +5,9 @@ from modules.hunter_lookup import hunter_lookup
 from modules.duckduckgo_dork import duckduckgo_search, build_dork
 from modules.exporter import export_results
 from modules.overpass_lookup import build_overpass_query, query_overpass, parse_overpass_results
+from modules.geocode import geocode_address, build_bbox_from_point
+
+
 
 def main_menu():
     print("=== MENU PRINCIPAL ===")
@@ -72,36 +75,61 @@ def run_overpass_search():
     value = input("Valeur de ce tag (ex: bakery, pharmacy...) : ").strip()
     name = input("Nom recherché (Enter pour ignorer) : ").strip() or None
 
-    print("\nZone de recherche :")
-    print("1. Toulouse")
-    print("2. Marseille")
-    print("3. Montpellier")
-    print("4. Entrer manuellement (lat1, lon1, lat2, lon2)")
-    choix = input("Choisissez une zone : ").strip()
+    print("\nMode de zone géographique :")
+    print("1. Zone prédéfinie (Toulouse, Marseille, etc.)")
+    print("2. Autour d’une adresse (via géocodage)")
+    print("3. Bounding box manuelle")
+    print("4. Recherche par pays (utilise tag addr:country)")
+    zone_mode = input("Choisissez un mode : ").strip()
 
-    bbox_presets = {
-        "1": [43.56, 1.36, 43.66, 1.50],     # Toulouse
-        "2": [43.25, 5.30, 43.35, 5.45],     # Marseille
-        "3": [43.59, 3.80, 43.65, 3.95],     # Montpellier
-    }
+    bbox = None
+    country_filter = None
 
-    if choix in bbox_presets:
-        bbox = bbox_presets[choix]
-    elif choix == "4":
+    if zone_mode == "1":
+        print("1. Toulouse\n2. Marseille\n3. Montpellier")
+        choix = input("Choisissez une ville : ").strip()
+        bbox_presets = {
+            "1": [43.56, 1.36, 43.66, 1.50],
+            "2": [43.25, 5.30, 43.35, 5.45],
+            "3": [43.59, 3.80, 43.65, 3.95],
+        }
+        bbox = bbox_presets.get(choix)
+
+    elif zone_mode == "2":
+        adresse = input("Entrez une adresse ou ville : ").strip()
+        radius = input("Rayon en km (par défaut 5) : ").strip()
+        radius = float(radius) if radius else 5.0
+        coords = geocode_address(adresse)
+        if not coords:
+            print("❌ Adresse introuvable.")
+            return
+        bbox = build_bbox_from_point(coords["lat"], coords["lon"], radius)
+
+    elif zone_mode == "3":
         try:
-            print("Format : lat1,lon1,lat2,lon2")
-            bbox_input = input("Entrez la bounding box : ").strip()
+            bbox_input = input("lat1,lon1,lat2,lon2 : ").strip()
             bbox = list(map(float, bbox_input.split(",")))
             if len(bbox) != 4:
                 raise ValueError
         except:
             print("❌ Bounding box invalide.")
             return
+
+    elif zone_mode == "4":
+        country = input("Code pays ISO (ex: FR, BE, MA...) : ").strip().upper()
+        country_filter = country
     else:
         print("❌ Choix invalide.")
         return
 
-    query = build_overpass_query(key=key, value=value, name=name, bbox=bbox)
+    query = build_overpass_query(
+        key=key,
+        value=value,
+        name=name,
+        bbox=bbox,
+        country=country_filter
+    )
+
     raw_data = query_overpass(query)
 
     if "error" in raw_data:
@@ -118,6 +146,7 @@ def run_overpass_search():
             print(f"- {r['name']} ({r['lat']}, {r['lon']}) | Tags: {r['tags']}")
 
     prompt_export(results, label="résultats Overpass")
+
 
 if __name__ == "__main__":
     while True:

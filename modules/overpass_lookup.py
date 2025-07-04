@@ -2,11 +2,14 @@ import requests
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-def build_overpass_query(key, value=None, name=None, bbox=None):
+def build_overpass_query(key, value=None, name=None, bbox=None, country=None):
     filters = f'["{key}"="{value}"]' if value else f'["{key}"]'
     if name:
-        filters += f'["name"~"{name}",i]'
-
+        filters = f'["{key}"="{value}"]' if value else f'["{key}"]'
+        if name:
+            filters += f'["name"~"{name}",i]'
+        if country:
+            filters += f'["addr:country"="{country}"]'
     bbox_str = f"({','.join(map(str, bbox))})" if bbox else ""
     query = f"""
     [out:json][timeout:25];
