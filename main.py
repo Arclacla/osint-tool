@@ -6,6 +6,7 @@ from modules.duckduckgo_dork import duckduckgo_search, build_dork
 from modules.exporter import export_results
 from modules.overpass_lookup import build_overpass_query, query_overpass, parse_overpass_results
 from modules.geocode import geocode_address, build_bbox_from_point
+from modules.map_visualization import create_map
 
 
 
@@ -146,7 +147,9 @@ def run_overpass_search():
             print(f"- {r['name']} ({r['lat']}, {r['lon']}) | Tags: {r['tags']}")
 
     prompt_export(results, label="résultats Overpass")
-
+    create_map_choice = input("Voulez-vous générer une carte interactive des résultats ? (o/N) : ").strip().lower()
+    if create_map_choice == "o":
+        create_map(results)
 
 if __name__ == "__main__":
     while True:
