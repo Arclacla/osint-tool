@@ -3,14 +3,29 @@ import requests
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
 def build_overpass_query(key, value=None, name=None, bbox=None, country=None):
+    # Construction des filtres tags
     filters = f'["{key}"="{value}"]' if value else f'["{key}"]'
+    
+    # Ajouter filtre sur le nom (pas sur "value" car potentiellement None)
     if name:
-        filters = f'["{key}"="{value}"]' if value else f'["{key}"]'
-        if name:
-            filters += f'["name"~"{name}",i]'
-        if country:
-            filters += f'["addr:country"="{country}"]'
-    bbox_str = f"({','.join(map(str, bbox))})" if bbox else ""
+        filters += f'["name"~"{name}",i]'
+    # Filtre pays
+    if country:
+        filters += f'["addr:country"="{country}"]'
+
+    bbox_str = ""
+    if bbox and len(bbox) == 4:
+        # bbox attendue: [lat_min, lon_min, lat_max, lon_max]
+        lat_min, lon_min, lat_max, lon_max = bbox
+        # On vérifie l'ordre (au cas où)
+        south = min(lat_min, lat_max)
+        north = max(lat_min, lat_max)
+        west = min(lon_min, lon_max)
+        east = max(lon_min, lon_max)
+
+        # **Ordonner dans l’ordre attendu par Overpass: (south, west, north, east)**
+        bbox_str = f"({south},{west},{north},{east})"
+
     query = f"""
     [out:json][timeout:25];
     (

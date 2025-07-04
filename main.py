@@ -5,9 +5,9 @@ from modules.hunter_lookup import hunter_lookup
 from modules.duckduckgo_dork import duckduckgo_search, build_dork
 from modules.exporter import export_results
 from modules.overpass_lookup import build_overpass_query, query_overpass, parse_overpass_results
-from modules.geocode import geocode_address, build_bbox_from_point
+from modules.geocode import geocode_address, build_bbox_from_point, geocode_departement
 from modules.map_visualization import create_map
-from modules.osm_tags import OSM_TAGS
+from modules.all_list import *
 
 
 
@@ -115,7 +115,7 @@ def input_with_help_loop(prompt: str, options: list = None, allow_skip=True) -> 
                     idx = options_lower.index(val_lower)
                     return options[idx]
                 else:
-                    print(f"\n⚠️ '{val}' n'est pas dans la liste des options valides. Tape 'help' pour afficher la liste, ou 'skip' pour ignorer.")
+                    print(f"\n⚠️ '{val}' n'est pas dans la liste des options valides. Tape 'help' pour afficher la liste, ou 'skip' pour ignorer. ")
             else:
                 # Pas de liste d'options, retourne direct
                 return val
@@ -127,12 +127,12 @@ def run_overpass_search():
 
     keys = list(OSM_TAGS.keys())
     key = input_with_help_loop(
-        "Tag principal OSM. Tapez 'help'",
+        "Tag principal OSM. Tapez 'help' : ",
         options=keys,
         allow_skip=False  # ici on veut un tag obligatoire
     )
     if not key:
-        print("Tag principal obligatoire, arrêt.")
+        print("Tag principal obligatoire, arrêt. ")
         return
 
     values = OSM_TAGS.get(key, [])
@@ -151,6 +151,7 @@ def run_overpass_search():
     print("2. Autour d’une adresse (via géocodage)")
     print("3. Bounding box manuelle")
     print("4. Recherche par pays (utilise tag addr:country)")
+    print("5. Recherche par départements (nom ou code)")
     zone_mode = input("Choisissez un mode : ").strip()
 
     bbox = None
@@ -189,6 +190,41 @@ def run_overpass_search():
     elif zone_mode == "4":
         country = input("Code pays ISO (ex: FR, BE, MA...) : ").strip().upper()
         country_filter = country
+
+    elif zone_mode == "5":
+        print("\n--- Liste des départements ---")
+        # Affiche les départements triés par code
+        for code, name_dep in sorted(DEPARTMENTS.items()):
+            print(f"{code} : {name_dep}")
+        
+        choix_dep = input("\nEntrez le code ou le nom du département (ou 'exit' pour annuler) : ").strip()
+        if choix_dep.lower() == "exit":
+            print("Recherche département annulée.")
+            return
+
+        # Recherche code à partir du nom (insensible à la casse)
+        code_dep = None
+        if choix_dep.upper() in DEPARTMENTS:
+            code_dep = choix_dep.upper()
+        else:
+            # Cherche par nom (insensible casse)
+            for code, nom in DEPARTMENTS.items():
+                if nom.lower() == choix_dep.lower():
+                    code_dep = code
+                    break
+
+        if not code_dep:
+            print("❌ Département non trouvé.")
+            return
+
+        print(f"Département sélectionné : {code_dep} - {DEPARTMENTS[code_dep]}")
+
+        # Appel fonction géocodage pour récupérer la bbox
+        bbox = geocode_departement(code_dep)
+        if not bbox:
+            print("❌ Impossible de géocoder ce département.")
+            return
+
     else:
         print("❌ Choix invalide.")
         return
@@ -211,7 +247,7 @@ def run_overpass_search():
     results = parse_overpass_results(raw_data)
 
     if not results:
-        print("Aucun résultat trouvé.")
+        print("\nAucun résultat trouvé.")
     else:
         print(f"\n✅ {len(results)} résultats trouvés :\n")
         for r in results:
