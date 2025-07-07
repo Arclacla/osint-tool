@@ -9,6 +9,8 @@ from modules.map_visualization import create_map
 from datas.all_list import *
 from modules.WMN_search import run_username_search
 from modules.utils import *
+from modules.saucenao_search import search_image_saucenao, run_image_reverse_search
+
 
 def main_menu():
     print("=== MENU PRINCIPAL ===")
@@ -16,6 +18,7 @@ def main_menu():
     print("2. Recherche via DuckDuckGo Dork")
     print("3. Recherche Overpass OpenStreetMap")
     print("4. Recherche de nom d'utilisateur (WhatsMyName)")
+    print("5. Recherche d'image inversée (SauceNao)")
     print("0. Quitter")
     return input("Sélectionnez une option : ").strip()
 
@@ -256,6 +259,8 @@ if __name__ == "__main__":
             run_overpass_search()
         elif choix == "4":
             run_username_search(prompt_export)
+        elif choix == "5":
+            run_image_reverse_search()
         elif choix == "0":
             print("Au revoir 👋")
             break
