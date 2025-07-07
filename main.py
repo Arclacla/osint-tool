@@ -7,7 +7,7 @@ from modules.exporter import export_results
 from modules.overpass_lookup import build_overpass_query, query_overpass, parse_overpass_results
 from modules.geocode import geocode_address, build_bbox_from_point, geocode_departement
 from modules.map_visualization import create_map
-from modules.all_list import *
+from datas.all_list import *
 
 
 

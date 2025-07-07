@@ -1,5 +1,5 @@
 import requests
-from modules.all_list import *
+from datas.all_list import *
 
 
 def geocode_address(address):
