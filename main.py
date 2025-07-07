@@ -3,19 +3,19 @@ from modules.dns_lookup import dns_lookup
 from modules.whois_lookup import whois_lookup
 from modules.hunter_lookup import hunter_lookup
 from modules.duckduckgo_dork import duckduckgo_search, build_dork
-from modules.exporter import export_results
 from modules.overpass_lookup import build_overpass_query, query_overpass, parse_overpass_results
 from modules.geocode import geocode_address, build_bbox_from_point, geocode_departement
 from modules.map_visualization import create_map
 from datas.all_list import *
-
-
+from modules.WMN_search import run_username_search
+from modules.utils import *
 
 def main_menu():
     print("=== MENU PRINCIPAL ===")
     print("1. Recherche OSINT via nom de domaine")
     print("2. Recherche via DuckDuckGo Dork")
     print("3. Recherche Overpass OpenStreetMap")
+    print("4. Recherche de nom d'utilisateur (WhatsMyName)")
     print("0. Quitter")
     return input("Sélectionnez une option : ").strip()
 
@@ -24,20 +24,6 @@ def main_menu():
 def ask_list(prompt):
     val = input(prompt).strip()
     return val.split(",") if val else []
-
-
-
-def prompt_export(data, label="résultat"):
-    print(f"\nSouhaitez-vous exporter les {label} ?")
-    print("1. Oui, au format JSON")
-    print("2. Oui, au format Markdown")
-    print("3. Non")
-    choice = input("Votre choix : ").strip()
-    if choice == "1":
-        export_results(data, format="json")
-    elif choice == "2":
-        export_results(data, format="md")
-
 
 
 def run_domain_search():
@@ -148,7 +134,7 @@ def run_overpass_search():
     name = input("Nom recherché (Enter pour ignorer) : ").strip() or None
     print("\nMode de zone géographique :")
     print("1. Zone prédéfinie (Toulouse, Marseille, etc.)")
-    print("2. Autour d’une adresse (via géocodage)")
+    print("2. Autour d'une adresse (via géocodage)")
     print("3. Bounding box manuelle")
     print("4. Recherche par pays (utilise tag addr:country)")
     print("5. Recherche par départements (nom ou code)")
@@ -268,6 +254,8 @@ if __name__ == "__main__":
             run_dork_search()
         elif choix == "3":
             run_overpass_search()
+        elif choix == "4":
+            run_username_search(prompt_export)
         elif choix == "0":
             print("Au revoir 👋")
             break
